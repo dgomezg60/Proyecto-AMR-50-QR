@@ -1,24 +1,14 @@
 import asyncio
-import sys
-try:
-    from WebsocketClient.ClientClass import main
-except:
-    from ClientClass import main
-try:
-    from DB.SQLLite import DB
-except:
-    sys.path.insert(1, '/home/qxt-0004/Downloads/AMR-Simulator-main/')
-    from DB.SQLLite import DB
+from .ClientClass import main
 import websockets
 
 def origin():
-    robot = AMR()
+    robot = AMR(0)
     robot.NewAMR()
 
 class AMR:
-    def __init__(self):
-        self.DB = DB()
-        self.DB.Connect()
+    def __init__(self,id):
+        self.id = id
         self.Status = 'Enty'
         self.Battery = 0
         self.Position = 'A0'
@@ -26,9 +16,12 @@ class AMR:
 
     def WebsocketClient(self):
         try:
+            print('Inicio cliente')
             asyncio.run(main(self.id,"59"))
         except websockets.exceptions.ConnectionClosedError:
-            print('Server turn off')
+            print("Server turn off")
+        except:
+            print("Server turn off")
 
     def GetPath(self):
         return self.Path
@@ -48,14 +41,4 @@ class AMR:
             self.DB.UpdateDate('AMR',UData,f'IDAMR={self.id}')
 
     def NewAMR(self):
-        self.DB.DeleteRow('AMR',f'IDAMR=0')
-        LastObject = self.DB.ReadOrder('AMR','IDAMR ASC')
-        try:
-            self.id = int(LastObject[0][0])+1
-        except TypeError:
-            self.id = 0
-        self.DB.InsertRow('AMR',f"({self.id},'{self.Status}','{self.Position}',{self.Battery},'{self.Path}')")
         self.WebsocketClient()
-
-if __name__ == '__main__':
-    origin()

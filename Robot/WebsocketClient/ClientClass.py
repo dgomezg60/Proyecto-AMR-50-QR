@@ -33,15 +33,16 @@ class client():
             #message = struct.format(self.Id,Position,Speed,Blocked,Queued,Status,ErrorStatus,BatteryLevel)
             message = struct.format(self.Id,self.Position)
             await self.__clientSender.send(message)
-            await asyncio.sleep(1)
 
     async def ListeningServer(self):
         Order = await self.__clientListener.recv()
         if Order != 'OK':
             self.message = json.loads(Order)
+            print(f'Message from the server {self.message}')
             #print("ID:{}, Position: {}".format(self.message['IDRobot'],self.message['Position']))
             self.Position = self.message['Position']
             await self.SendParameters()
+            # print('No mando')
         await self.ListeningServer()
 
 async def main(id,token):
@@ -54,10 +55,5 @@ async def main(id,token):
         quit()
     except websockets.exceptions.ConnectionClosedError:
          print('Unathenticated')
-
-if __name__ == '__main__':
-    Ip = '192.168.1.171'
-    Ports = [8765,8766]
-    asyncio.run(main(0,'59'))
 
 

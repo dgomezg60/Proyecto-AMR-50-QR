@@ -85,8 +85,3 @@ class DB:
     def Disconnect(self):
         self.__conn.commit()
         self.__conn.close()
-
-# if __name__ == '__main__':
-#     DataBase = DB()
-#     DataBase.Connect()
-#     DataBase.UpdateDate("SEPARATION",f"Distance = {5}",f"IDdistance = {0}")
