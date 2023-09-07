@@ -1,3 +1,4 @@
+from pprint import pprint
 import numpy as np
 from DB.SQLLite import DB
 
@@ -14,8 +15,8 @@ class Map:
             Relations = self.__Db.Find('NEIGHBOURDS',"Next == '{}'".format(Row[0]))
             Neighbours = []
             for Neighbour in Relations:
-                Weight = self.__Db.Find('SEPARATION',f'IDdistance == {Neighbour[0]}')[0]
-                NeighbourData = {'Node': Neighbour[-1],'Weight': Weight[-1]}
+                Weight = self.__Db.Find('SEPARATION',f'IDdistance == {Neighbour[-1]}')[0]
+                NeighbourData = {'Node': Neighbour[0],'Weight': Weight[-1]}
                 Neighbours.append(NeighbourData)
             self.Map[f'{Row[0]}'] = {'Coordenates':[Row[1],Row[2]],'neighbours':Neighbours}
 
@@ -35,7 +36,6 @@ class AStar(Map):
     while True:
         Distances = []
         for edge in StartPoint['neighbours']:
-            print(edge)
             Distances.append(self.__CalculateDistance(self.Graph['{}'.format(edge['Node'])]['Coordenates'],EndPoint['Coordenates'],edge['Weight']))
         MinDistance = min(Distances)
         NextPoint = StartPoint['neighbours'][Distances.index(MinDistance)]['Node']

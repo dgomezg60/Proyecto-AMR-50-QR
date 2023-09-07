@@ -1,11 +1,9 @@
 import asyncio
-from asyncore import loop
-import json
 import random
-from threading import Thread
 import time
 from Algorithm.a_star import AStar
 from DB.SQLLite import DB
+from Logging.ElasticCluster import ElasticLogs
 from WebsocketServer.LaunchServer import Server
 from Algorithm.a_star import AStar
 
@@ -14,6 +12,7 @@ class back:
         self.ServerP = Server()
         time.sleep(0.5)
         self.Db = DB()
+        self.__ElasticLogs = ElasticLogs()
         self.Db.Connect()
         asyncio.run(self.InitCicle())
         
@@ -24,10 +23,13 @@ class back:
         print('What point do you want to send the robot?')
         Positions = self.Db.ReadColum('Map','IDPosition')
         self.EndPoint = random.choice(Positions)[0]
-        
+        #self.EndPoint = input()
         if self.Db.Find('Map',f"IDPosition == '{self.EndPoint}'"):
             _ = input()
+            #try:
             await asyncio.create_task(self.SendPath(self.IdRobot,self.EndPoint))
+            # except KeyError:
+            #     print('Dont have AMR with this ID')
         else:
             print('This position doesnt exist')
         print('Another cicle, press enter')
@@ -42,22 +44,31 @@ class back:
         print(f'Path --------> {self.Path}')
         if self.PathLenght > 1:
             self.Db.UpdateDate('AMR',f"Path == '{StringPath}'",f'IDAMR == {self.IdRobot}')
-            loop =  asyncio.get_event_loop()
-            for Point in self.Path:
+            for Point in self.Path[1:]:
                 Position = self.Db.Find('MAP',f"IDPosition == '{Point}'")[0]
                 await self.ServerP.send_message(Id,[Position[1],Position[2],0])
-                #await self.ReadP(Id)
-                #asyncio.run(self.ReadP(Id))
-                await loop.run_in_executor(None,self.ReadP,Id)          
+                ChangePosition = True
+                while ChangePosition:
+                    ChangePosition = await self.ReadP(Id,Point)
             self.Db.UpdateDate('AMR',f"Path == ''",f'IDAMR == {self.IdRobot}')
 
-    async def ReadP(self,Id):
+    async def ReadP(self,Id,DestinyPoint):
         MessageData = await self.ServerP.read_message(Id) 
         MessageData['Position'] = self.__NormalicePosition(MessageData['Position'])
+        print(f'From Robot {Id} recibed {MessageData}')
+        if MessageData['ErrorStatus'] == 0:
+            self.__ElasticLogs.Info(MessageData)
+        else:
+            self.__ElasticLogs.Error(MessageData)
         IdPosition = self.Db.Find('MAP',f"XPosition == {MessageData['Position'][0]} AND YPosition == {MessageData['Position'][1]}")[0]
-        print(f'Id actualizado: {IdPosition}')
-        self.Db.UpdateDate('AMR',f"Position == '{IdPosition[0]}'",f'IDAMR == {self.IdRobot}')
+        if IdPosition[0] == DestinyPoint:
+            self.Db.UpdateDate('AMR',f"Position == '{IdPosition[0]}'",f'IDAMR == {self.IdRobot}')
+            return False
+        return True
 
     def __NormalicePosition(self,PositionString):
-        Position = PositionString[1:-1]
-        return Position.split(',')
+        try:
+            Position = PositionString[1:-1]
+            return Position.split(',')
+        except AttributeError:
+            return PositionString

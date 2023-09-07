@@ -1,4 +1,5 @@
 import asyncio
+from pprint import pprint
 import websockets
 import json
 from DB.SQLLite import DB
@@ -36,16 +37,15 @@ class Server(object):
     ##-------------------------------------------------------------------Server listen----------------------------------------------------------------------------------------------
     ##------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     async def read_message(self,Id):
-        client = self.ClientAuthorisedListener[f'{Id}']
-        text = await client.recv()
-        message = json.loads(text)
-        print("Server Read: ID:{}, Position: {}".format(message['IDRobot'],message['Position']))
+        message = self.BufferMessage[f'{Id}']
+        #print("Server Read: ID:{}, Position: {}".format(message['IDRobot'],message['Position']))
         return message
         # await self.read_message(client)
 
     async def ReadAllTime(self,client):
         text = await client.recv()
-        print(text)
+        message = json.loads(text)
+        self.BufferMessage[message['IDRobot']] = message
         #message = json.loads(text)
         #print("Server Read: ID:{}, Position: {}".format(message['IDRobot'],message['Position']))
         await self.ReadAllTime(client)
@@ -112,6 +112,7 @@ class Server(object):
     async def start_server(self):
         self.__DB = DB()
         self.__DB.Connect()
+        self.BufferMessage = {}
         ListeningServer = await websockets.serve(self.server_handler_listen,self.Ip, self.Ports[1])
         print(f'Listening server turn on, at {self.Ip}:{self.Ports[1]}')
         SendingServer = await websockets.serve(self.server_handler_send, self.Ip, self.Ports[0])
@@ -139,9 +140,3 @@ class Server(object):
             print('\nServer turn off')
         except TimeoutError:
             print('\nDisconect out of time')
-
-# def MainServer():
-#     ServerObj = Server()
-
-# if __name__ == '__main__':
-#     MainServer()
