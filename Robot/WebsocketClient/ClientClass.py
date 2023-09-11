@@ -6,7 +6,7 @@ import json
 class client():
     def __init__(self,Identify):
         self.Id = Identify
-        self.Ip = '192.168.1.171'
+        self.Ip = '192.168.1.241'
         self.Ports = [8765,8766]
         self.Position = [0.5,0.5,0]
          

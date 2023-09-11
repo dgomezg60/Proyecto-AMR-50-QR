@@ -133,7 +133,7 @@ class Server(object):
         self.ClientAuthorisedListener = {}
         self.ClientAuthorisedSender = {}
         self.Ports = [8765,8766]
-        self.Ip = '192.168.1.171'
+        self.Ip = '192.168.1.241'
         try:
             asyncio.run(self.start_server())
         except KeyboardInterrupt:

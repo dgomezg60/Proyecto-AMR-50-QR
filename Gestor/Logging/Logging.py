@@ -20,7 +20,7 @@ class Logging():
     def __ConfigurationLog(self):
         self.__Logger = self.Log.getLogger()
         self.__Logger.setLevel(self.Log.INFO)
-        #self.__PathLogFile = self.__SizeOf()
+        self.__PathLogFile = self.__CreateNewLogFile()
         if len(self.__Logger.handlers) == 0:
             self.__FileHandler = self.Log.FileHandler(self.__PathLogFile)
             self.__FileHandler.setLevel(self.Log.INFO)
@@ -44,36 +44,24 @@ class Logging():
             pass
         return f'Logging\\Logs\\log_{current_datetime.strftime("%d-%m-%Y")}.log'
     
-    def __FormText(self,message):
-        text = ' '
-        print(message.values())
-        for data in message.values():
-            text = text + f'{data}' + ' - '
-        return text[:-2]
-
     def WDebug(self,message):
-        text = self.__FormText(message)
-        self.Log.debug(text)
+        self.Log.debug(message)
         self.__ConfigurationLog()
     
     def WInfo(self,message):
-        text = self.__FormText(message)
-        self.Log.info(text)
+        self.Log.info(message)
         self.__ConfigurationLog()
     
     def WWarning(self,message):
-        text = self.__FormText(message)
-        self.Log.warning(text)
+        self.Log.warning(message)
         self.__ConfigurationLog()
     
     def WError(self,message):
-        text = self.__FormText(message)
-        self.Log.error(text)
+        self.Log.error(message)
         self.__ConfigurationLog()
     
     def WCritical(self,message):
-        text = self.__FormText(message)
-        self.Log.critical(text)
+        self.Log.critical(message)
         self.__ConfigurationLog()
 
 # if __name__ == '__main__':

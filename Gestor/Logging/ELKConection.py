@@ -1,4 +1,3 @@
-
 from elasticsearch import Elasticsearch
 
 
@@ -15,7 +14,6 @@ class ElasticConection:
     def __init__(self):
         self.User = Elasticsearch(
         "https://localhost:9200",
-        ca_certs="C://Users//dgomezg//Documents//elasticstack//elasticsearch-8.9.1-windows-x86_64//elasticsearch-8.9.1//config//certs//http_ca.crt",
-        basic_auth=("david", "123456")
-        )
-        print(self.User.ping())
+        ca_certs="C://Users//dgomezg//Documents//elasticstack//elasticsearch-8.9.1//config//certs//http_ca.crt",
+        basic_auth=('david','123456'))
+        print(f'Ping ElasticSearch {self.User.ping()}')

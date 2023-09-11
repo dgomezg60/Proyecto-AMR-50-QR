@@ -12,7 +12,7 @@ class ElasticClass(ElasticConection):
 
     def SearchIndex(self,Name):
         try:
-            return self.User.search(index= Name)
+            return self.User.search(index= Name,)
         except elasticsearch.NotFoundError:
             return None
         
@@ -46,14 +46,21 @@ class ElasticClass(ElasticConection):
         self.User.update(index=Document['_index'],id=Document['_id'],doc=Document['_source'])
         self.User.indices.refresh(index=Document['_index'])
 
-class ElasticLogs(Logging):
+    def AddData(self,Data):
+        Index = self.SearchIndex(f'log_{datetime.now().strftime("%d-%m-%Y")}')
+        if Index == None:
+            self.CreateIndex(f'log_{datetime.now().strftime("%d-%m-%Y")}')
+        self.IngestDocuments(f'log_{datetime.now().strftime("%d-%m-%Y")}',Data)
+
+class ElasticLogs(Logging,ElasticClass):
     def __init__(self):
         super().__init__()
+        super(ElasticClass,self).__init__()
 
     def __GetMessaggeBase(self):
         MesaggeBase = {
             'Type': '',
-            'Datetime': datetime.now().strftime("%d/%m/%Y_%H:%M:%S"),
+            'Datetime': datetime.now().strftime("%-%m-%Y_%H:%M:%S"),
             'RobotId': ''
         }
         return MesaggeBase
@@ -68,10 +75,17 @@ class ElasticLogs(Logging):
         LogMessage['Velocity'] = message['Speed']
         LogMessage['Battery'] = message['BatteryLevel']
 
+        self.AddData(LogMessage)
         LogMessage.pop('Type')
+        LogMessage.pop('Datetime')
         self.WInfo(LogMessage)
     
-    def Warning(self,message):
+    def warning(self,message):
+        LogMessage = self.__GetMessaggeBase()
+        LogMessage['Type'] = 'WARNING'
+        
+        LogMessage.pop('Type')
+        LogMessage.pop('Datetime')
         self.WWarning(message)
     
     def Error(self,message):
@@ -81,7 +95,13 @@ class ElasticLogs(Logging):
         LogMessage['ErrorType'] = message['ErrorStatus']
         
         LogMessage.pop('Type')
+        LogMessage.pop('Datetime')
         self.WError(LogMessage)
     
     def Critical(self,message):
+        LogMessage = self.__GetMessaggeBase()
+        LogMessage['Type'] = 'CRITICAL'
+        
+        LogMessage.pop('Type')
+        LogMessage.pop('Datetime')
         self.WCritical(message)
